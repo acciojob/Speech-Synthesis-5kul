@@ -9,7 +9,6 @@
 <body>
 
     <div class="voiceinator">
-
       <h1>The Voiceinator 5000</h1>
 
       <select name="voice" id="voices">
@@ -20,12 +19,12 @@
       <input name="rate" type="range" min="0" max="3" value="1" step="0.1">
 
       <label for="pitch">Pitch:</label>
-
       <input name="pitch" type="range" min="0" max="2" step="0.1">
+
       <textarea name="text">Hello! I love JavaScript 👍</textarea>
+
       <button id="stop">Stop!</button>
       <button id="speak">Speak</button>
-
     </div>
 
 <script>
@@ -36,7 +35,63 @@
   const speakButton = document.querySelector('#speak');
   const stopButton = document.querySelector('#stop');
 
-  //Your code goes here
+  // Function to populate the voice dropdown menu
+  function populateVoices() {
+    voices = speechSynthesis.getVoices();
+    voicesDropdown.innerHTML = ''; // Clear existing voices
+    voices.forEach(voice => {
+      const option = document.createElement('option');
+      option.textContent = `${voice.name} (${voice.lang})`;
+      option.setAttribute('data-lang', voice.lang);
+      option.setAttribute('data-name', voice.name);
+      voicesDropdown.appendChild(option);
+    });
+  }
+
+  // Populate voices when the page loads and when voices change
+  populateVoices();
+  if (speechSynthesis.onvoiceschanged !== undefined) {
+    speechSynthesis.onvoiceschanged = populateVoices;
+  }
+
+  // Function to set up the voice settings and start speaking
+  function speakText() {
+    const text = document.querySelector('[name="text"]').value.trim();
+    if (text === '') {
+      alert("Please enter some text.");
+      return;
+    }
+
+    const selectedVoice = voices[voicesDropdown.selectedIndex];
+
+    // Set voice properties
+    msg.voice = selectedVoice;
+    msg.rate = document.querySelector('[name="rate"]').value;
+    msg.pitch = document.querySelector('[name="pitch"]').value;
+    msg.text = text;
+
+    // Start speaking
+    speechSynthesis.speak(msg);
+  }
+
+  // Stop the speech immediately
+  function stopSpeech() {
+    speechSynthesis.cancel();
+  }
+
+  // Event listeners
+  speakButton.addEventListener("click", speakText);
+  stopButton.addEventListener("click", stopSpeech);
+
+  // Update rate and pitch dynamically
+  options.forEach(option => {
+    option.addEventListener("input", () => {
+      if (speechSynthesis.speaking) {
+        stopSpeech();
+        speakText();
+      }
+    });
+  });
 </script>
 
 </body>
